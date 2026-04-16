@@ -18,23 +18,18 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Import GPG key
-        run: |
-          echo "$GPG_SIGNING_KEY" | gpg --batch --import
-          gpg --list-secret-keys --keyid-format=long
-          echo "use-agent" >> ~/.gnupg/gpg.conf
-          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
-        env:
-          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
-
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
       - name: Publish to Maven Central
-        run: ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache
+        run: |
+          # Decode GPG key from base64 and pass as in-memory signing key
+          DECODED_KEY=$(echo "$GPG_SIGNING_KEY_B64" | base64 -d)
+          ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache \
+            -PsigningInMemoryKey="$DECODED_KEY" \
+            -PsigningInMemoryKeyId="${{ secrets.GPG_KEY_ID }}" \
+            -PsigningInMemoryKeyPassword="" \
+            -PmavenCentralUsername="${{ secrets.CENTRAL_USERNAME }}" \
+            -PmavenCentralPassword="${{ secrets.CENTRAL_PASSWORD }}"
         env:
-          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.CENTRAL_USERNAME }}
-          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.CENTRAL_PASSWORD }}
-          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_SIGNING_KEY }}
-          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.GPG_KEY_ID }}
-          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ""
+          GPG_SIGNING_KEY_B64: ${{ secrets.GPG_SIGNING_KEY_B64 }}
