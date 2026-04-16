@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.0.0"
     `java-library`
     id("com.vanniktech.maven.publish") version "0.29.0"
+    signing
 }
 
 group = "dev.cachly"
@@ -31,6 +32,7 @@ tasks.test {
 
 mavenPublishing {
     publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
+    // Signing is handled by the signing plugin below
     signAllPublications()
 
     coordinates("dev.cachly", "cachly-kotlin", "0.1.0-beta.1")
@@ -60,4 +62,8 @@ mavenPublishing {
             url.set("https://github.com/cachly-dev/sdk-kotlin")
         }
     }
+}
+
+signing {
+    useGpgCmd()
 }

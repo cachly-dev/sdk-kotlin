@@ -18,18 +18,26 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Import and trust GPG key
+        run: |
+          echo "$GPG_SIGNING_KEY_B64" | base64 -d | gpg --batch --import
+          # Set trust level to ultimate so gpg can sign without prompting
+          FINGERPRINT=$(gpg --list-keys --with-colons hello@cachly.dev | grep '^fpr' | head -1 | cut -d: -f10)
+          echo "${FINGERPRINT}:6:" | gpg --import-ownertrust
+          echo "use-agent" >> ~/.gnupg/gpg.conf
+          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+          gpg --list-secret-keys --keyid-format=long
+        env:
+          GPG_SIGNING_KEY_B64: ${{ secrets.GPG_SIGNING_KEY_B64 }}
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
       - name: Publish to Maven Central
         run: |
-          # Decode GPG key from base64 and pass as in-memory signing key
-          DECODED_KEY=$(echo "$GPG_SIGNING_KEY_B64" | base64 -d)
           ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache \
-            -PsigningInMemoryKey="$DECODED_KEY" \
-            -PsigningInMemoryKeyId="${{ secrets.GPG_KEY_ID }}" \
-            -PsigningInMemoryKeyPassword="" \
+            -Psigning.gnupg.keyName="${{ secrets.GPG_KEY_ID }}" \
             -PmavenCentralUsername="${{ secrets.CENTRAL_USERNAME }}" \
             -PmavenCentralPassword="${{ secrets.CENTRAL_PASSWORD }}"
         env:
-          GPG_SIGNING_KEY_B64: ${{ secrets.GPG_SIGNING_KEY_B64 }}
+          GPG_TTY: /dev/tty
