@@ -1,0 +1,39 @@
+name: Publish to Maven Central
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Import GPG key
+        run: |
+          echo "$GPG_SIGNING_KEY" | gpg --batch --import
+          gpg --list-secret-keys --keyid-format=long
+          echo "use-agent" >> ~/.gnupg/gpg.conf
+          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+        env:
+          GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Publish to Maven Central
+        run: |
+          ./gradlew publish \
+            -PcentralUsername=${{ secrets.CENTRAL_USERNAME }} \
+            -PcentralPassword=${{ secrets.CENTRAL_PASSWORD }} \
+            -PsigningKey="$(gpg --armor --export-secret-keys ${{ secrets.GPG_KEY_ID }})" \
+            -PsigningPassword=""
