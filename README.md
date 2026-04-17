@@ -2,7 +2,7 @@
 
 Official Kotlin SDK for [cachly.dev](https://cachly.dev) – Managed Valkey/Redis cache.
 
-**DSGVO-compliant · German servers · 30s provisioning**  
+**GDPR-compliant · German servers · Live in 30 seconds**  
 **Coroutine-native · Ktor & Spring Boot ready**
 
 ## Installation
@@ -103,9 +103,9 @@ class CachlyConfig(@Value("\${cachly.url}") private val url: String) {
 | `semantic` | `SemanticCache` helper for AI workloads |
 | `raw()` | Direct `UnifiedJedis` access |
 
-## Batch API – mehrere Ops in einem Round-Trip
+## Batch API — Multiple Ops in One Round-Trip
 
-Bündelt GET/SET/DEL/EXISTS/TTL-Ops in **einem** HTTP-Request oder einer Jedis-Pipeline.
+Bundle GET/SET/DEL/EXISTS/TTL operations into **one** HTTP request or Jedis pipeline.
 
 ```kotlin
 val cache = CachlyClient.builder()
@@ -124,7 +124,7 @@ val results = cache.batch(listOf(
 val user  : String? = results[0].value      // null on miss
 val ok    : Boolean = results[2].ok
 val found : Boolean = results[3].exists
-val secs  : Long    = results[4].ttlSeconds  // -1 = kein TTL, -2 = nicht vorhanden
+val secs  : Long    = results[4].ttlSeconds  // -1 = no TTL, -2 = key missing
 ```
 
 ## Environment Variables
@@ -138,6 +138,27 @@ CACHLY_VECTOR_URL=https://api.cachly.dev/v1/sem/your-vector-token
 
 Find both values in your [cachly.dev dashboard](https://cachly.dev/instances).
 
-## License
+## AI Dev Brain — Persistent Memory for Your Coding Assistant
 
+cachly ships a **30-tool MCP server** that gives Claude Code, Cursor, GitHub Copilot, and Windsurf a persistent memory across sessions.
 
+```bash
+npx @cachly-dev/init
+```
+
+`session_start(instance_id, focus)` returns a full briefing in one call: last session summary, relevant lessons, open failures, brain health.
+
+→ Full docs: [cachly.dev/docs/ai-memory](https://cachly.dev/docs/ai-memory)
+
+---
+
+## Links
+
+- 📖 [cachly.dev docs](https://cachly.dev/docs)
+- 🧠 [AI Memory / MCP Server](https://cachly.dev/docs/ai-memory)
+- 🐛 [Issues](https://github.com/cachly-dev/sdk-kotlin/issues)
+- 📦 [Maven Central](https://central.sonatype.com/artifact/dev.cachly/cachly-kotlin)
+
+---
+
+MIT © [cachly.dev](https://cachly.dev)
